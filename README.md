@@ -78,6 +78,19 @@ SELECT
     rating AS most_frequent_rating
 FROM RankedRatings
 WHERE rank = 1;
+OR
+```
+```sql
+Using SubQuery
+select movie_type,rating from (
+    select movie_type,rating,count(*),
+    rank() OVER(partition by movie_type order by count(*) desc) AS rnk
+    From netflix
+    group by movie_type,rating
+    order by movie_type,count(*) desc
+) AS t1
+
+ where rnk =1;
 ```
 
 **Objective:** Identify the most frequently occurring rating for each type of content.
@@ -155,6 +168,16 @@ SELECT *
 FROM netflix
 WHERE type = 'TV Show'
   AND SPLIT_PART(duration, ' ', 1)::INT > 5;
+
+IN MYSQL
+SELECT *
+FROM netflix
+WHERE type = 'TV Show'
+  AND CAST(SUBSTRING_INDEX(duration, ' ', 1) AS UNSIGNED) > 5;
+
+SUBSTRING_INDEX(duration, ' ', 1): This extracts the substring from duration before the first space. For a value like 10 min, it extracts 10.
+CAST(... AS UNSIGNED): Converts the extracted substring to an integer so that it can be used in a numerical comparison.
+> 5: Checks if the converted integer is greater than 5.
 ```
 
 **Objective:** Identify TV shows with more than 5 seasons.
